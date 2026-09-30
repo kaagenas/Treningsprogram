@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Styrke">
+<meta name="theme-color" content="#E9EFF2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121C22" media="(prefers-color-scheme: dark)">
+<title>Styrkeprogram</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --snow:#E9EFF2; --paper:#FFFFFF; --ink:#16232B; --muted:#5E707B;
+  --frost:#CFDAE0; --pine:#2E6152; --pine-soft:#DCEAE4; --line:#D9E2E7;
+  --warn:#9A5B12; --warn-soft:#F5E7D3; --danger:#A33A2A;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --snow:#121C22; --paper:#1A262E; --ink:#E6EDF1; --muted:#8FA2AD;
+    --frost:#2C3B44; --pine:#6FB39C; --pine-soft:#1F3830; --line:#26343C;
+    --warn:#E0A55C; --warn-soft:#3A2C1A; --danger:#E58A7A;
+  }
+}
+:root[data-theme="dark"]{
+  --snow:#121C22; --paper:#1A262E; --ink:#E6EDF1; --muted:#8FA2AD;
+  --frost:#2C3B44; --pine:#6FB39C; --pine-soft:#1F3830; --line:#26343C;
+  --warn:#E0A55C; --warn-soft:#3A2C1A; --danger:#E58A7A;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  margin:0;background:var(--snow);color:var(--ink);
+  font-family:"Barlow",-apple-system,"Helvetica Neue",Arial,sans-serif;
+  font-size:17px;line-height:1.4;-webkit-tap-highlight-color:transparent;
+}
+button,input,select,textarea{font-family:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--pine);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px calc(96px + env(safe-area-inset-bottom,0px))}
+
+header{padding:18px 0 4px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+h1{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:34px;line-height:1;margin:0}
+.week{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:20px;color:var(--pine)}
+
+nav.days{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--snow);padding:12px 0 10px}
+.tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  appearance:none;flex:1 0 100px;min-width:0;border:1.5px solid var(--frost);background:var(--paper);color:var(--ink);
+  border-radius:12px;padding:8px 6px 9px;cursor:pointer;text-align:center;position:relative;overflow:hidden;
+}
+.tab b{display:block;font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:22px;line-height:1.05}
+.tab span{display:block;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab .bar{position:absolute;left:0;bottom:0;height:4px;background:var(--pine);width:0;transition:width .3s}
+.tab[aria-selected="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.tab[aria-selected="true"] span{color:var(--frost)}
+.tab.fin span{color:var(--pine);font-weight:600}
+.tab.fin[aria-selected="true"] span{color:var(--pine-soft)}
+.tab.fin .bar{width:100%!important}
+
+.dayhead{display:flex;align-items:baseline;justify-content:space-between;margin:14px 2px 10px;gap:10px}
+.dayhead h2{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:26px;margin:0;line-height:1.1}
+.count{font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+ul{list-style:none;margin:0;padding:0}
+.ex{background:var(--paper);border-radius:14px;padding:14px;margin-bottom:8px;border:1px solid var(--line);transition:background .2s}
+.ex.done{background:var(--pine-soft);border-color:transparent}
+.ex.failed{background:var(--warn-soft);border-color:transparent}
+.ex-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.name{font-weight:600;font-size:18px;line-height:1.25}
+.ex.done .name{color:var(--pine)}
+.dose{color:var(--muted);font-size:15px;margin-top:2px;font-variant-numeric:tabular-nums}
+.meta{color:var(--muted);font-size:14px;margin-top:2px}
+.load{appearance:none;border:none;background:var(--ink);color:var(--paper);border-radius:10px;padding:6px 10px 5px;cursor:pointer;text-align:right;line-height:1;flex:none}
+.load b{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:26px;font-variant-numeric:tabular-nums}
+.load small{font-size:13px;margin-left:2px}
+.load.empty{background:transparent;color:var(--pine);border:1.5px dashed var(--pine);font-weight:600;font-size:14px;padding:8px 10px}
+.sets{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.set{
+  appearance:none;flex:1 1 0;min-width:52px;height:46px;border-radius:10px;border:1.5px solid var(--frost);background:transparent;color:var(--muted);
+  font-weight:600;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:background .15s,border-color .15s,color .15s,transform .1s;
+}
+.set:active{transform:scale(.96)}
+.set[aria-pressed="true"]{background:var(--pine);border-color:var(--pine);color:var(--paper)}
+.set svg{width:16px;height:16px;display:none}
+.set[aria-pressed="true"] svg{display:block}
+.ex-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px}
+.last{font-size:13px;color:var(--muted)}
+.fail{appearance:none;border:1.5px solid var(--frost);background:transparent;color:var(--muted);border-radius:8px;padding:6px 10px;font-size:14px;font-weight:500;cursor:pointer;flex:none}
+.fail[aria-pressed="true"]{background:var(--warn);border-color:var(--warn);color:var(--paper)}
+.finish{appearance:none;width:100%;border:none;background:var(--pine);color:var(--paper);border-radius:12px;padding:15px;font-size:17px;font-weight:600;cursor:pointer;margin-top:10px}
+.hint{color:var(--muted);font-size:14px;margin:10px 2px 0}
+
+h3.sec{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:22px;margin:22px 2px 8px}
+.explain{color:var(--muted);font-size:14px;margin:8px 2px 0;line-height:1.45}
+.group{background:var(--paper);border-radius:14px;border:1px solid var(--line);overflow:hidden;margin-bottom:12px}
+.empty-h{color:var(--muted);padding:14px}
+
+/* history */
+.hsess{padding:12px 14px;border-top:1px solid var(--line)}
+.hsess:first-child{border-top:none}
+.hsess h4{margin:0 0 6px;font-size:16px;font-weight:600;display:flex;justify-content:space-between}
+.hsess h4 span{color:var(--muted);font-weight:400;font-size:14px}
+.hline{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:2px 0}
+.r-up{color:var(--pine)} .r-fail,.r-deload{color:var(--warn)} .r-partial{color:var(--muted)}
+.ghost{appearance:none;width:100%;margin-top:6px;border:1.5px solid var(--frost);background:transparent;color:var(--ink);border-radius:12px;padding:13px;font-size:16px;font-weight:500;cursor:pointer}
+.ghost.add{border-style:dashed;color:var(--pine);border-color:var(--pine);font-weight:600}
+
+/* setup */
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding:12px 14px}
+.chip{appearance:none;border:1.5px solid var(--frost);background:transparent;color:var(--ink);border-radius:999px;padding:8px 14px;font-size:16px;font-weight:600;cursor:pointer;font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.custom{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-top:1px solid var(--line)}
+.dhead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;background:var(--ink);color:var(--paper)}
+.dhead b{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:22px;display:block;line-height:1.1}
+.dhead small{color:var(--frost);font-size:14px}
+.dhead .acts{display:flex;gap:6px;flex:none}
+.dhead .mini{border-color:rgba(255,255,255,.3);color:var(--paper)}
+.srow{display:flex;align-items:center;gap:6px;padding:8px 8px 8px 14px;border-top:1px solid var(--line)}
+.dhead + .srow{border-top:none}
+.sinfo{appearance:none;flex:1;min-width:0;border:none;background:none;color:var(--ink);text-align:left;padding:4px 0;cursor:pointer}
+.sinfo b{display:block;font-weight:600;font-size:16px}
+.sinfo small{display:block;color:var(--muted);font-size:13px}
+.mini{appearance:none;flex:none;width:36px;height:36px;border-radius:9px;border:1.5px solid var(--frost);background:transparent;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600}
+.mini[disabled]{opacity:.3}
+.mini.txt{width:auto;padding:0 12px}
+.addrow{appearance:none;width:100%;border:none;border-top:1px solid var(--line);background:none;color:var(--pine);padding:13px 14px;text-align:left;font-size:16px;font-weight:600;cursor:pointer}
+.tagtype{display:inline-block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--pine);margin-left:6px}
+
+/* sheet + form */
+.sheet{position:fixed;inset:0;z-index:20;background:var(--snow);overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);display:none}
+.sheet.open{display:block}
+.sheet-head{position:sticky;top:0;background:var(--snow);z-index:2;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 16px 10px;max-width:560px;margin:0 auto;border-bottom:1px solid var(--line)}
+.sheet-head h2{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:26px;margin:0;flex:1;text-align:center}
+.hbtn{appearance:none;border:none;background:none;color:var(--ink);font-size:16px;padding:8px 4px;cursor:pointer;min-width:64px;text-align:left}
+.hbtn.pri{background:var(--pine);color:var(--paper);border-radius:10px;padding:9px 14px;font-weight:600;text-align:center}
+.sheet-body{max-width:560px;margin:0 auto;padding:6px 16px 40px}
+.fld{display:block;margin-top:14px}
+.fld > span{display:block;font-size:14px;font-weight:600;color:var(--muted);margin:0 2px 6px}
+.fld input,.fld select{width:100%;height:46px;border:1.5px solid var(--frost);border-radius:10px;background:var(--paper);color:var(--ink);font-size:17px;padding:0 12px}
+.fld small{display:block;color:var(--muted);font-size:13px;margin:5px 2px 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.two .fld{margin-top:14px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--paper);border:1.5px solid var(--frost);border-radius:12px;padding:4px}
+.seg button{appearance:none;border:none;background:transparent;color:var(--ink);border-radius:9px;padding:10px 4px;font-size:15px;font-weight:600;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.tsec{display:none}
+form[data-type="kg"] .t-kg, form[data-type="bw"] .t-bw, form[data-type="time"] .t-time, form[data-type="kg"] .t-pct, form[data-type="time"] .t-pct{display:block}
+.danger{appearance:none;width:100%;margin-top:26px;border:1.5px solid var(--danger);background:transparent;color:var(--danger);border-radius:12px;padding:13px;font-size:16px;font-weight:600;cursor:pointer}
+
+/* tab bar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:15;background:var(--paper);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabbar-in{display:grid;grid-template-columns:repeat(3,1fr);max-width:560px;margin:0 auto}
+.tb{appearance:none;border:none;background:none;padding:9px 0 8px;font-size:12px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.tb svg{width:24px;height:24px}
+.tb[aria-current="page"]{color:var(--pine)}
+
+.modal-bg{position:fixed;inset:0;z-index:40;background:rgba(10,18,22,.45);display:none;align-items:flex-end;justify-content:center;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+.modal-bg.open{display:flex}
+.modal{background:var(--paper);color:var(--ink);border-radius:16px;padding:18px;width:100%;max-width:528px}
+.modal p{margin:0 0 16px;font-size:17px}
+.modal .row2{display:flex;gap:8px}
+.modal button{flex:1;appearance:none;border-radius:12px;padding:14px;font-size:17px;font-weight:600;cursor:pointer}
+.m-cancel{border:1.5px solid var(--frost);background:transparent;color:var(--ink)}
+.m-ok{border:none;background:var(--pine);color:var(--paper)}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));max-width:528px;margin:0 auto;background:var(--ink);color:var(--paper);border-radius:12px;padding:14px 16px;font-size:15px;z-index:50;opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s;pointer-events:none}
+.toast.show{opacity:1;transform:none}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="viewTitle">Styrkeprogram</h1>
+    <span class="week" id="weekLbl"></span>
+  </header>
+  <div id="view"></div>
+</div>
+
+<nav class="tabbar" aria-label="Hovedmeny"><div class="tabbar-in">
+  <button class="tb" data-view="train"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg>Trening</button>
+  <button class="tb" data-view="hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Historikk</button>
+  <button class="tb" data-view="setup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>Oppsett</button>
+</div></nav>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet-head"><button class="hbtn" id="sheetCancel">Avbryt</button><h2 id="sheetTitle"></h2><button class="hbtn pri" id="sheetSave">Lagre</button></div>
+  <div class="sheet-body" id="sheetBody"></div>
+</div>
+
+<div class="modal-bg" id="modal"><div class="modal" role="alertdialog" aria-modal="true">
+  <p id="modalMsg"></p><div class="row2"><button class="m-cancel" id="mCancel">Avbryt</button><button class="m-ok" id="mOk">OK</button></div>
+</div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- data ---------- */
+function defaultProgram(){
+  const kg=(id,n,sets,reps,o={})=>Object.assign({id,n,type:"kg",sets,reps,v:null,step:2.5,fails:0,last:null},o);
+  return [
+    {id:"d1",title:"Dag 1",sub:"Trekk og ben",ex:[
+      {id:"d1-pullups",n:"Pull-ups",type:"bw",sets:5,r:5,min:5,max:8,w:0,add:2.5,fails:0,last:null,note:"Full strekk nederst, hake over stanga. 2-3 min pause"},
+      kg("d1-benpress","Benpress",3,"10"),
+      kg("d1-rdl","Rumensk markløft med stang",3,"10",{note:"Stopp ved strekk i hamstrings"}),
+      kg("d1-tahev","Tåhev",3,"12"),
+      kg("d1-skulder","Skulderpress",3,"10"),
+      kg("d1-legcurl","Prone leg curl",3,"10"),
+      {id:"d1-planke",n:"Planke",type:"time",sets:3,t:40,fails:0,last:null}
+    ]},
+    {id:"d2",title:"Dag 2",sub:"Onsdag, tung ben",ex:[
+      kg("d2-knebøy","Knebøy",4,"5",{note:"Tungt, 2-3 min pause"}),
+      kg("d2-marklø","Markløft",3,"5",{note:"Tungt, 2-3 min pause"}),
+      kg("d2-hamcurl","Prone leg curl",3,"10"),
+      kg("d2-tahev","Tåhev",3,"12"),
+      kg("d2-abd","Hofteabduksjon",3,"15 per side",{note:"30-60 sek pause"}),
+      {id:"d2-tib",n:"Tibialis raises",type:"bw",sets:3,r:15,min:15,max:20,w:0,add:2.5,fails:0,last:null,note:"Barføtt eller flate sko, 30-60 sek pause"}
+    ]},
+    {id:"d3",title:"Dag 3",sub:"Press og ben",ex:[
+      kg("d3-benk","Benkpress",3,"8"),
+      kg("d3-roing","Sittende roing",3,"10"),
+      kg("d3-curl","Bicepscurl",3,"10",{step:2,note:"kg per manual"}),
+      kg("d3-triceps","Tricepspress",3,"10"),
+      kg("d3-bss","Bulgarian split squat",3,"10 per bein",{step:2,note:"kg per manual"}),
+      kg("d3-utfall","Utfall eller step-up",3,"10 per bein",{step:2,note:"kg per manual"}),
+      kg("d3-pallof","Pallof press",3,"12 per side")
+    ]}
+  ];
+}
+
+const KEY="styrke-v3";
+let state={view:"train",tab:0,week:1,weekDone:{},history:[],done:{},fail:{},pct:5,program:null};
+function load(){
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(raw){ Object.assign(state,JSON.parse(raw)); }
+    else{
+      const old=JSON.parse(localStorage.getItem("styrke-v2")||"null");
+      state.program=defaultProgram();
+      if(old){
+        ["tab","week","weekDone","history","done","fail"].forEach(k=>{ if(old[k]!=null) state[k]=old[k]; });
+        if(old.pct && old.pct.big!=null) state.pct=old.pct.big;
+        state.program.forEach(d=>d.ex.forEach(e=>{
+          const o=old.ex&&old.ex[e.id]; if(!o) return;
+          e.fails=o.fails||0;
+          if(e.type==="kg"){ e.v=o.v; }
+          else if(e.type==="time"){ if(o.v!=null) e.t=o.v; }
+          else if(e.id==="d1-pullups"){ if(o.r!=null){ e.r=o.r; e.w=o.w||0; } }
+          else if(o.v!=null){ e.r=Math.round(o.v); }
+          if(o.last) e.last={date:o.last.date,res:o.last.res,txt:o.last.txt||(o.last.w!=null?`${fmt(o.last.w)} ${e.type==="kg"?"kg":e.type==="time"?"sek":"reps"}`:"")};
+        }));
+      }
+    }
+  }catch(e){}
+  if(!Array.isArray(state.program)) state.program=defaultProgram();
+  if(!Array.isArray(state.history)) state.history=[];
+  if(!state.weekDone) state.weekDone={};
+  if(!state.done) state.done={}; if(!state.fail) state.fail={};
+  if(typeof state.pct!=="number") state.pct=5;
+}
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} }
+
+/* ---------- helpers ---------- */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt=n=>(Math.round(n*100)/100).toLocaleString("nb-NO",{maximumFractionDigits:2});
+const num=s=>{ s=String(s==null?"":s).trim().replace(",","."); if(s==="") return null; const n=parseFloat(s); return isFinite(n)&&n>=0?n:NaN; };
+const uid=()=>"x"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const TYPE={kg:"Vekter",bw:"Kroppsvekt",time:"Tid"};
+const pctOf=e=>e.pct!=null?e.pct:state.pct;
+const kgShown=e=>e.v==null?null:Math.max(e.step||2.5,Math.round(e.v/(e.step||2.5))*(e.step||2.5));
+const tShown=e=>Math.max(5,Math.round((e.t||0)/5)*5);
+function dose(e){
+  if(e.type==="kg") return `${e.sets} × ${e.reps}`;
+  if(e.type==="time") return `${e.sets} × ${tShown(e)} sek`;
+  return `${e.sets} × ${e.r} reps`;
+}
+function summary(e){
+  let s=dose(e);
+  if(e.type==="kg") s+= e.v==null?", ingen vekt satt":`, ${fmt(kgShown(e))} kg`;
+  if(e.type==="bw" && e.w>0) s+=`, +${fmt(e.w)} kg`;
+  return s;
+}
+const setKey=(e,k)=>`${e.id}#${k}`;
+const anyTicked=e=>{ for(let k=0;k<e.sets;k++) if(state.done[setKey(e,k)]) return true; return false; };
+const allTicked=e=>{ for(let k=0;k<e.sets;k++) if(!state.done[setKey(e,k)]) return false; return true; };
+function clearEx(e){ Object.keys(state.done).forEach(k=>{ if(k.startsWith(e.id+"#")) delete state.done[k]; }); delete state.fail[e.id]; }
+function progress(d){ let tot=0,got=0; d.ex.forEach(e=>{ tot+=e.sets; for(let k=0;k<e.sets;k++) if(state.done[setKey(e,k)]) got++; }); return {tot,got}; }
+const check='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
+
+let tt;
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove("show"),3200); }
+let askCb=null;
+function ask(msg,ok,cb){ $("modalMsg").textContent=msg; $("mOk").textContent=ok; askCb=cb; $("modal").classList.add("open"); }
+$("mCancel").onclick=()=>{ askCb=null; $("modal").classList.remove("open"); };
+$("mOk").onclick=()=>{ const cb=askCb; askCb=null; $("modal").classList.remove("open"); if(cb) cb(); };
+
+/* ---------- views ---------- */
+function render(){
+  const P=state.program;
+  if(state.tab>=P.length) state.tab=Math.max(0,P.length-1);
+  $("weekLbl").textContent=`Uke ${state.week}`;
+  $("viewTitle").textContent={train:"Styrkeprogram",hist:"Historikk",setup:"Oppsett"}[state.view];
+  document.querySelectorAll(".tb").forEach(b=>{ if(b.dataset.view===state.view) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
+  const v=$("view"); v.innerHTML="";
+  if(state.view==="train") renderTrain(v); else if(state.view==="hist") renderHist(v); else renderSetup(v);
+}
+document.querySelectorAll(".tb").forEach(b=>b.onclick=()=>{ state.view=b.dataset.view; save(); render(); window.scrollTo({top:0}); });
+
+/* Training */
+function renderTrain(v){
+  const P=state.program;
+  if(!P.length){ v.innerHTML=`<div class="group" style="margin-top:14px"><div class="empty-h">Du har ingen økter ennå. Gå til Oppsett og legg til en økt.</div></div>`; return; }
+  const nav=document.createElement("nav"); nav.className="days";
+  const tabs=document.createElement("div"); tabs.className="tabs"; tabs.setAttribute("role","tablist");
+  P.forEach((d,i)=>{
+    const p=progress(d), fin=!!state.weekDone[d.id];
+    const b=document.createElement("button"); b.className="tab"+(fin?" fin":""); b.setAttribute("role","tab"); b.setAttribute("aria-selected",i===state.tab?"true":"false");
+    b.innerHTML=`<b>${esc(d.title)}</b><span>${fin?"Ferdig":esc(d.sub||"\u00a0")}</span><div class="bar" style="width:${p.tot?p.got/p.tot*100:0}%"></div>`;
+    b.onclick=()=>{ state.tab=i; save(); render(); window.scrollTo({top:0}); };
+    tabs.appendChild(b);
+  });
+  nav.appendChild(tabs); v.appendChild(nav);
+  requestAnimationFrame(()=>{ const s=tabs.children[state.tab]; if(s) s.scrollIntoView({inline:"nearest",block:"nearest"}); });
+
+  const di=state.tab, day=P[di], p=progress(day);
+  const head=document.createElement("div"); head.className="dayhead";
+  head.innerHTML=`<h2>${esc(day.sub||day.title)}</h2><span class="count">${p.got} av ${p.tot} sett</span>`;
+  v.appendChild(head);
+  if(!day.ex.length){ const g=document.createElement("div"); g.className="group"; g.innerHTML='<div class="empty-h">Ingen øvelser i denne økta. Legg til i Oppsett.</div>'; v.appendChild(g); return; }
+
+  const ul=document.createElement("ul");
+  day.ex.forEach((e,ei)=>{
+    const failed=!!state.fail[e.id], done=allTicked(e);
+    const li=document.createElement("li"); li.className="ex"+(failed?" failed":done?" done":"");
+    let chip="";
+    if(e.type==="kg") chip=e.v==null?`<button class="load empty" data-edit>Sett vekt</button>`:`<button class="load" data-edit aria-label="Endre vekt"><b>${fmt(kgShown(e))}</b><small>kg</small></button>`;
+    if(e.type==="bw") chip=e.w>0?`<button class="load" data-edit aria-label="Endre ekstravekt"><b>+${fmt(e.w)}</b><small>kg</small></button>`:`<button class="load empty" data-edit>Kroppsvekt</button>`;
+    const last=e.last?`Sist ${esc(e.last.date)}: ${esc(e.last.txt)}, ${RES[e.last.res]||""}`:"";
+    li.innerHTML=`<div class="ex-top"><div><div class="name">${esc(e.n)}</div><div class="dose">${dose(e)}</div>${e.note?`<div class="meta">${esc(e.note)}</div>`:""}</div>${chip}</div>
+      <div class="sets"></div>
+      <div class="ex-bottom"><span class="last">${last}</span><button class="fail" aria-pressed="${failed}">Ikke klart</button></div>`;
+    const sets=li.querySelector(".sets");
+    for(let k=0;k<e.sets;k++){
+      const key=setKey(e,k), b=document.createElement("button");
+      b.className="set"; b.setAttribute("aria-pressed",state.done[key]?"true":"false"); b.setAttribute("aria-label",`${e.n}, sett ${k+1}`);
+      b.innerHTML=check+`<span>Sett ${k+1}</span>`;
+      b.onclick=()=>{ if(state.done[key]) delete state.done[key]; else state.done[key]=1; save(); render(); if(navigator.vibrate) navigator.vibrate(10); };
+      sets.appendChild(b);
+    }
+    li.querySelector(".fail").onclick=()=>{ if(failed) delete state.fail[e.id]; else state.fail[e.id]=1; save(); render(); };
+    const ed=li.querySelector("[data-edit]"); if(ed) ed.onclick=()=>openEx(di,ei);
+    ul.appendChild(li);
+  });
+  v.appendChild(ul);
+  const fb=document.createElement("button"); fb.className="finish"; fb.textContent="Fullfør økt"; fb.onclick=()=>finishDay(di); v.appendChild(fb);
+  const h=document.createElement("p"); h.className="hint";
+  h.textContent="Alle sett krysset av gir progresjon til neste uke. \"Ikke klart\" holder nivået. Tre ganger ikke klart på rad tar deg et steg ned.";
+  v.appendChild(h);
+}
+
+const RES={up:"klart",fail:"ikke klart",deload:"tatt ned",partial:"ikke fullført"};
+function finishDay(di){
+  const day=state.program[di];
+  if(!day.ex.some(e=>state.fail[e.id]||anyTicked(e))){ toast("Kryss av sett før du fullfører økta."); return; }
+  const again=state.weekDone[day.id]?" Denne økta er allerede fullført denne uken.":"";
+  ask(`Fullføre ${day.title}? Vektene oppdateres og økta lagres i historikken.${again}`,"Fullfør",()=>doFinish(di));
+}
+function step(e,failed,done,up,down){
+  if(failed){ e.fails=(e.fails||0)+1; if(e.fails>=3){ down(); e.fails=0; return "deload"; } return "fail"; }
+  if(done){ up(); e.fails=0; return "up"; }
+  return "partial";
+}
+function doFinish(di){
+  const day=state.program[di];
+  const date=new Date().toLocaleDateString("nb-NO",{day:"numeric",month:"short"});
+  const entries=[]; let up=0,hold=0,down=0;
+  day.ex.forEach(e=>{
+    const failed=!!state.fail[e.id], done=allTicked(e);
+    if(!(failed||anyTicked(e))){ clearEx(e); return; }
+    let txt,res;
+    if(e.type==="kg"){
+      if(e.v==null){ txt=`${e.sets}×${e.reps}, uten vekt`; res=failed?"fail":done?"up":"partial"; }
+      else{ txt=`${e.sets}×${e.reps}, ${fmt(kgShown(e))} kg`; res=step(e,failed,done,()=>{ e.v*=1+pctOf(e)/100; },()=>{ e.v*=0.9; }); }
+    }else if(e.type==="time"){
+      txt=`${e.sets}×${tShown(e)} sek`; res=step(e,failed,done,()=>{ e.t*=1+pctOf(e)/100; },()=>{ e.t*=0.9; });
+    }else{
+      const add=e.add||2.5;
+      txt=`${e.sets}×${e.r}`+(e.w>0?` +${fmt(e.w)} kg`:" kroppsvekt");
+      res=step(e,failed,done,()=>{ if(e.max && e.r>=e.max){ e.r=e.min||e.r; e.w=(e.w||0)+add; } else e.r++; },()=>{ if(e.w>0) e.w=Math.max(0,e.w-add); else e.r=Math.max(1,e.r-1); });
+    }
+    const noW=e.type==="kg"&&e.v==null;
+    if(res==="up"&&!noW) up++; else if(res==="deload") down++; else hold++;
+    e.last={date,txt,res}; entries.push({n:e.n,txt,res}); clearEx(e);
+  });
+  state.history.unshift({week:state.week,day:day.title,dayId:day.id,date,ts:Date.now(),entries});
+  if(state.history.length>400) state.history.length=400;
+  state.weekDone[day.id]=true;
+  let wm="";
+  if(state.program.every(d=>state.weekDone[d.id])){ wm=`Uke ${state.week} er ferdig, uke ${state.week+1} starter.`; state.week++; state.weekDone={}; state.tab=0; }
+  else{ const n=state.program.findIndex(d=>!state.weekDone[d.id]); if(n>=0) state.tab=n; }
+  save(); render(); window.scrollTo({top:0});
+  const parts=[]; if(up) parts.push(`${up} går opp`); if(hold) parts.push(`${hold} står`); if(down) parts.push(`${down} tas ned`);
+  toast(["Økt lagret.",parts.length?parts.join(", ")+".":"",wm].filter(Boolean).join(" "));
+}
+
+/* History */
+function renderHist(v){
+  const doneNow=state.program.filter(d=>state.weekDone[d.id]).map(d=>d.title);
+  const p=document.createElement("p"); p.className="explain";
+  p.textContent=`Du er i uke ${state.week}. `+(doneNow.length?`Fullført: ${doneNow.join(", ")}.`:"Ingen økter fullført ennå denne uken.");
+  v.appendChild(p);
+  if(!state.history.length){ const g=document.createElement("div"); g.className="group"; g.style.marginTop="12px"; g.innerHTML='<div class="empty-h">Fullførte økter vises her. Trykk "Fullfør økt" etter en økt for å lagre den.</div>'; v.appendChild(g); }
+  [...new Set(state.history.map(h=>h.week))].forEach(w=>{
+    const h3=document.createElement("h3"); h3.className="sec"; h3.textContent=`Uke ${w}`; v.appendChild(h3);
+    const g=document.createElement("div"); g.className="group";
+    state.history.filter(h=>h.week===w).forEach(h=>{
+      const d=document.createElement("div"); d.className="hsess";
+      d.innerHTML=`<h4>${esc(h.day)}<span>${esc(h.date)}</span></h4>`;
+      if(!h.entries.length) d.insertAdjacentHTML("beforeend",'<div class="hline">Ingen øvelser registrert</div>');
+      h.entries.forEach(en=>d.insertAdjacentHTML("beforeend",`<div class="hline"><span>${esc(en.n)}: ${esc(en.txt)}</span><span class="r-${en.res}">${RES[en.res]||""}</span></div>`));
+      g.appendChild(d);
+    });
+    v.appendChild(g);
+  });
+  const skip=document.createElement("button"); skip.className="ghost"; skip.style.marginTop="16px"; skip.textContent=`Avslutt uke ${state.week} og start neste`;
+  skip.onclick=()=>ask(`Avslutte uke ${state.week} nå? Økter som ikke er fullført hoppes over.`,"Start neste uke",()=>{
+    state.week++; state.weekDone={}; state.tab=0; state.done={}; state.fail={}; save(); render(); toast(`Uke ${state.week} er startet.`);
+  });
+  v.appendChild(skip);
+}
+
+/* Setup */
+function renderSetup(v){
+  const P=state.program;
+  const h=document.createElement("h3"); h.className="sec"; h.textContent="Progresjon per uke"; v.appendChild(h);
+  const g=document.createElement("div"); g.className="group";
+  const presets=[0,2.5,5,7.5,10];
+  g.innerHTML=`<div class="chips">${presets.map(x=>`<button class="chip" data-p="${x}" aria-pressed="${state.pct===x}">${fmt(x)} %</button>`).join("")}</div>
+    <div class="custom"><span>Egen verdi</span><label class="fld" style="margin:0;width:110px"><input id="pctIn" inputmode="decimal" type="text" value="${fmt(state.pct)}" aria-label="Egen progresjon i prosent" style="text-align:right"></label></div>`;
+  g.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{ state.pct=parseFloat(b.dataset.p); save(); render(); });
+  const pin=g.querySelector("#pctIn");
+  pin.addEventListener("change",()=>{ const n=num(pin.value); if(n==null||Number.isNaN(n)||n>25){ pin.value=fmt(state.pct); toast("Velg en prosent mellom 0 og 25."); return; } state.pct=n; save(); render(); });
+  v.appendChild(g);
+  const ex=document.createElement("p"); ex.className="explain";
+  ex.textContent="Gjelder alle øvelser med vekter eller tid, med mindre en øvelse har egen prosent. Vekten rundes til nærmeste skive eller manual, og små steg samles opp til det holder for neste hopp. Kroppsvektøvelser øker med én rep per uke og får ekstravekt når de når maks reps.";
+  v.appendChild(ex);
+
+  const h2=document.createElement("h3"); h2.className="sec"; h2.textContent="Økter"; v.appendChild(h2);
+  P.forEach((d,di)=>{
+    const card=document.createElement("div"); card.className="group";
+    card.innerHTML=`<div class="dhead"><div><b>${esc(d.title)}</b><small>${esc(d.sub||"")}</small></div><div class="acts">
+      <button class="mini" data-a="up" aria-label="Flytt økt opp" ${di===0?"disabled":""}>↑</button>
+      <button class="mini" data-a="down" aria-label="Flytt økt ned" ${di===P.length-1?"disabled":""}>↓</button>
+      <button class="mini txt" data-a="edit">Endre</button></div></div>`;
+    card.querySelector('[data-a="up"]').onclick=()=>{ [P[di-1],P[di]]=[P[di],P[di-1]]; if(state.tab===di) state.tab=di-1; else if(state.tab===di-1) state.tab=di; save(); render(); };
+    card.querySelector('[data-a="down"]').onclick=()=>{ [P[di+1],P[di]]=[P[di],P[di+1]]; if(state.tab===di) state.tab=di+1; else if(state.tab===di+1) state.tab=di; save(); render(); };
+    card.querySelector('[data-a="edit"]').onclick=()=>openDay(di);
+    d.ex.forEach((e,ei)=>{
+      const r=document.createElement("div"); r.className="srow";
+      r.innerHTML=`<button class="sinfo"><b>${esc(e.n)}<span class="tagtype">${TYPE[e.type]}</span></b><small>${esc(summary(e))}</small></button>
+        <button class="mini" data-a="u" aria-label="Flytt opp" ${ei===0?"disabled":""}>↑</button>
+        <button class="mini" data-a="d" aria-label="Flytt ned" ${ei===d.ex.length-1?"disabled":""}>↓</button>`;
+      r.querySelector(".sinfo").onclick=()=>openEx(di,ei);
+      r.querySelector('[data-a="u"]').onclick=()=>{ [d.ex[ei-1],d.ex[ei]]=[d.ex[ei],d.ex[ei-1]]; save(); render(); };
+      r.querySelector('[data-a="d"]').onclick=()=>{ [d.ex[ei+1],d.ex[ei]]=[d.ex[ei],d.ex[ei+1]]; save(); render(); };
+      card.appendChild(r);
+    });
+    const add=document.createElement("button"); add.className="addrow"; add.textContent="+ Legg til øvelse"; add.onclick=()=>openEx(di,-1);
+    card.appendChild(add);
+    v.appendChild(card);
+  });
+  const nd=document.createElement("button"); nd.className="ghost add"; nd.textContent="+ Legg til økt"; nd.onclick=()=>openDay(-1);
+  v.appendChild(nd);
+  const rs=document.createElement("button"); rs.className="ghost"; rs.style.marginTop="24px"; rs.textContent="Tilbakestill til standardprogram";
+  rs.onclick=()=>ask("Tilbakestille alle økter og øvelser til standardprogrammet? Vekter du har lagt inn forsvinner. Historikken beholdes.","Tilbakestill",()=>{ state.program=defaultProgram(); state.done={}; state.fail={}; state.weekDone={}; state.tab=0; save(); render(); toast("Programmet er tilbakestilt."); });
+  v.appendChild(rs);
+}
+
+/* Sheets */
+let onSave=null;
+function openSheet(title,html,saveFn){
+  $("sheetTitle").textContent=title; $("sheetBody").innerHTML=html; onSave=saveFn;
+  const s=$("sheet"); s.classList.add("open"); s.scrollTop=0; document.body.style.overflow="hidden";
+}
+function closeSheet(){ if(document.activeElement&&document.activeElement.blur) document.activeElement.blur(); $("sheet").classList.remove("open"); document.body.style.overflow=""; onSave=null; }
+$("sheetCancel").onclick=closeSheet;
+$("sheetSave").onclick=()=>{ if(onSave && onSave()!==false){ closeSheet(); save(); render(); } };
+
+function openDay(di){
+  const isNew=di<0, P=state.program;
+  const d=isNew?{title:`Dag ${P.length+1}`,sub:""}:P[di];
+  openSheet(isNew?"Ny økt":"Endre økt",`
+    <label class="fld"><span>Navn</span><input id="dTitle" type="text" value="${esc(d.title)}" maxlength="24"></label>
+    <label class="fld"><span>Beskrivelse</span><input id="dSub" type="text" value="${esc(d.sub||"")}" placeholder="For eksempel Onsdag, tung ben" maxlength="40"></label>
+    ${isNew?"":'<button class="danger" id="dDel">Slett økt</button>'}`,
+  ()=>{
+    const t=$("dTitle").value.trim(); if(!t){ toast("Økta må ha et navn."); return false; }
+    if(isNew){ P.push({id:uid(),title:t,sub:$("dSub").value.trim(),ex:[]}); state.tab=P.length-1; toast("Økt lagt til. Legg til øvelser under den."); }
+    else{ d.title=t; d.sub=$("dSub").value.trim(); }
+  });
+  if(!isNew) $("dDel").onclick=()=>ask(`Slette ${d.title} og alle øvelsene i den?`,"Slett",()=>{
+    d.ex.forEach(clearEx); delete state.weekDone[d.id]; P.splice(di,1); closeSheet(); save(); render(); toast("Økta er slettet.");
+  });
+}
+
+function openEx(di,ei){
+  const P=state.program, isNew=ei<0;
+  const e=isNew?{n:"",type:"kg",sets:3,reps:"10",v:null,step:2.5,r:8,min:5,max:null,w:0,add:2.5,t:30,note:""}:P[di].ex[ei];
+  const cur={kg:e.type==="kg"&&e.v!=null?fmt(kgShown(e)):"", t:e.type==="time"?String(tShown(e)):"30", r:String(e.r!=null?e.r:8), w:fmt(e.w||0)};
+  const dayOpts=P.map((d,i)=>`<option value="${i}" ${i===di?"selected":""}>${esc(d.title)}${d.sub?", "+esc(d.sub):""}</option>`).join("");
+  const stepOpt=[[2.5,"2,5 kg (stang og maskin)"],[2,"2 kg (manualer: 10, 12, 14)"],[1,"1 kg"],[5,"5 kg (maskin med store steg)"]]
+    .map(([x,l])=>`<option value="${x}" ${(e.step||2.5)===x?"selected":""}>${l}</option>`).join("");
+  openSheet(isNew?"Ny øvelse":"Endre øvelse",`
+  <form id="exf" data-type="${e.type}" onsubmit="return false">
+    <label class="fld"><span>Navn</span><input id="fN" type="text" value="${esc(e.n)}" placeholder="For eksempel Knebøy" maxlength="40"></label>
+    <div class="fld"><span>Type</span><div class="seg" role="group" aria-label="Type">
+      <button type="button" data-t="kg" aria-pressed="${e.type==="kg"}">Vekter</button>
+      <button type="button" data-t="bw" aria-pressed="${e.type==="bw"}">Kroppsvekt</button>
+      <button type="button" data-t="time" aria-pressed="${e.type==="time"}">Tid</button></div></div>
+    <div class="two">
+      <label class="fld"><span>Økt</span><select id="fDay">${dayOpts}</select></label>
+      <label class="fld"><span>Sett</span><input id="fS" inputmode="numeric" type="text" value="${e.sets}"></label>
+    </div>
+    <div class="tsec t-kg">
+      <div class="two">
+        <label class="fld"><span>Reps</span><input id="fReps" type="text" value="${esc(e.reps||"10")}" placeholder="10 eller 10 per bein"></label>
+        <label class="fld"><span>Vekt nå (kg)</span><input id="fKg" inputmode="decimal" type="text" value="${cur.kg}" placeholder="Ikke satt"></label>
+      </div>
+      <label class="fld"><span>Vektsteg</span><select id="fStep">${stepOpt}</select><small>Vekten rundes til nærmeste steg.</small></label>
+    </div>
+    <div class="tsec t-bw">
+      <div class="two">
+        <label class="fld"><span>Reps nå</span><input id="fR" inputmode="numeric" type="text" value="${cur.r}"></label>
+        <label class="fld"><span>Ekstravekt nå (kg)</span><input id="fW" inputmode="decimal" type="text" value="${cur.w}"></label>
+      </div>
+      <div class="two">
+        <label class="fld"><span>Start reps</span><input id="fMin" inputmode="numeric" type="text" value="${e.min!=null?e.min:""}" placeholder="5"></label>
+        <label class="fld"><span>Maks reps</span><input id="fMax" inputmode="numeric" type="text" value="${e.max!=null?e.max:""}" placeholder="Ingen"></label>
+      </div>
+      <label class="fld"><span>Økning ekstravekt (kg)</span><input id="fAdd" inputmode="decimal" type="text" value="${fmt(e.add||2.5)}"></label>
+      <small class="explain" style="display:block">+1 rep per uke. Når du når maks reps, legges ekstravekten på og reps går tilbake til start. Uten maks reps øker bare reps.</small>
+    </div>
+    <div class="tsec t-time">
+      <label class="fld"><span>Sekunder per sett nå</span><input id="fT" inputmode="numeric" type="text" value="${cur.t}"></label>
+    </div>
+    <div class="tsec t-pct">
+      <label class="fld"><span>Egen progresjon (%)</span><input id="fPct" inputmode="decimal" type="text" value="${e.pct!=null?fmt(e.pct):""}" placeholder="Følger felles (${fmt(state.pct)} %)"><small>La stå tom for å følge felles progresjon.</small></label>
+    </div>
+    <label class="fld"><span>Notat</span><input id="fNote" type="text" value="${esc(e.note||"")}" placeholder="Pause, teknikk eller lignende" maxlength="80"></label>
+    ${isNew?"":'<button type="button" class="danger" id="fDel">Slett øvelse</button>'}
+  </form>`,
+  ()=>{
+    const f=$("exf"), type=f.dataset.type;
+    const n=$("fN").value.trim(); if(!n){ toast("Øvelsen må ha et navn."); return false; }
+    const sets=Math.round(num($("fS").value)); if(!(sets>=1&&sets<=10)){ toast("Sett må være mellom 1 og 10."); return false; }
+    const x=isNew?{id:uid(),fails:0,last:null}:e;
+    const typeChanged=!isNew && x.type!==type;
+    if(type==="kg"){
+      const kg=num($("fKg").value); if(Number.isNaN(kg)){ toast("Skriv vekten som et tall, for eksempel 42,5."); return false; }
+      x.reps=$("fReps").value.trim()||"10"; x.step=parseFloat($("fStep").value);
+      if(kg==null) x.v=null; else if(typeChanged||isNew||$("fKg").value!==cur.kg||x.v==null){ x.v=kg; x.fails=0; }
+    }else if(type==="bw"){
+      const r=num($("fR").value), w=num($("fW").value), mn=num($("fMin").value), mx=num($("fMax").value), ad=num($("fAdd").value);
+      if([r,w,mn,mx,ad].some(Number.isNaN)||r==null||r<1){ toast("Sjekk tallene for reps og vekt."); return false; }
+      if(mx!=null && mn!=null && mx<=mn){ toast("Maks reps må være høyere enn start reps."); return false; }
+      if(String(Math.round(r))!==cur.r||(w||0)!==(e.w||0)||typeChanged) x.fails=0;
+      x.r=Math.round(r); x.w=w||0; x.min=mn!=null?Math.round(mn):Math.round(r); x.max=mx!=null?Math.round(mx):null; x.add=ad||2.5;
+    }else{
+      const t=num($("fT").value); if(t==null||Number.isNaN(t)||t<5){ toast("Skriv antall sekunder, minst 5."); return false; }
+      if(typeChanged||isNew||$("fT").value!==cur.t){ x.t=t; x.fails=0; }
+    }
+    if(type!=="bw"){ const pc=num($("fPct").value); if(Number.isNaN(pc)||(pc!=null&&pc>25)){ toast("Egen progresjon må være mellom 0 og 25 %."); return false; } if(pc==null) delete x.pct; else x.pct=pc; }
+    x.n=n; x.sets=sets; x.type=type; x.note=$("fNote").value.trim();
+    if(typeChanged||(!isNew && sets!==P[di].ex[ei].sets)) clearEx(x);
+    const nd=parseInt($("fDay").value,10);
+    if(isNew){ P[nd].ex.push(x); }
+    else if(nd!==di){ P[di].ex.splice(ei,1); clearEx(x); P[nd].ex.push(x); }
+  });
+  const f=$("exf");
+  f.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{ f.dataset.type=b.dataset.t; f.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false")); });
+  if(!isNew) $("fDel").onclick=()=>ask(`Slette ${e.n}?`,"Slett",()=>{ clearEx(e); P[di].ex.splice(ei,1); closeSheet(); save(); render(); toast("Øvelsen er slettet."); });
+}
+
+load(); render();
+</script>
+</body>
+</html>
